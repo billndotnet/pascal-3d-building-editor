@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { AnyNode } from '@pascal-app/core/schema'
+import { isTemplateId, TEMPLATES } from './index'
 import { metadata, template } from './rv-class-a'
 
 describe('rv-class-a template', () => {
@@ -44,5 +45,19 @@ describe('rv-class-a template', () => {
 
   test('metadata id matches', () => {
     expect(metadata.id).toBe('rv-class-a')
+  })
+})
+
+describe('rv-class-a registration', () => {
+  test('is registered in TEMPLATES', () => {
+    expect(Object.keys(TEMPLATES)).toContain('rv-class-a')
+  })
+
+  test('isTemplateId accepts it', () => {
+    expect(isTemplateId('rv-class-a')).toBe(true)
+  })
+
+  test('registered entry exposes the template graph', () => {
+    expect(TEMPLATES['rv-class-a'].template.rootNodeIds).toEqual(['site_rv'])
   })
 })

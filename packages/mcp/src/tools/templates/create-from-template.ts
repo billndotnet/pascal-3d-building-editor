@@ -13,7 +13,7 @@ export const createFromTemplateInput = {
   id: z
     .string()
     .describe(
-      'Template id (see `list_templates`). Currently one of: "empty-studio", "two-bedroom", "garden-house".',
+      'Template id (see `list_templates`). Currently one of: "empty-studio", "two-bedroom", "garden-house", "rv-class-a".',
     ),
   name: z
     .string()
