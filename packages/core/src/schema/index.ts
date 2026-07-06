@@ -73,6 +73,7 @@ export { FenceBaseStyle, FenceNode, FenceStyle } from './nodes/fence'
 export { GuideNode, GuideScaleReference } from './nodes/guide'
 export { GutterNode, GutterOutlet } from './nodes/gutter'
 export { HvacEquipmentNode } from './nodes/hvac-equipment'
+export { HydronicLineNode } from './nodes/hydronic-line'
 export type {
   AnimationEffect,
   Asset,
