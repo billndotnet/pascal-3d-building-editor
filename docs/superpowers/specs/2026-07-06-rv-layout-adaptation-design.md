@@ -184,10 +184,58 @@ Each phase is an independent build slice reusing the two geometry helpers.
 5. **Interior remodel** — RV-specific assets (dinette, wet bath, RV/murphy bed,
    captain's chairs) added to the catalog; remodel workflow.
 
+## As-Built Coach Profile — 1991 Bluebird Wanderlodge WB40 (Wide Body, tag axle)
+
+Owner-verified specifics that drive the constants and systems inventory:
+
+- **Envelope:** exterior body 102″ × 40′; interior clear width **95″** (→ 3.5″
+  sidewall build); interior ceiling **79″**. Cabin (habitable) = **36′** with a
+  front **4′ cockpit** zone. The rear engine bay is *below* the cabin plane
+  (chassis level), so the cabin floor runs full-length to the rear wall (a
+  built-in armoire over the engine-access port is being removed).
+- **Heat (as-is):** original **Primus** LP-gas hydronic boilers (factory Primus
+  2490) feeding **two hydronic loops — one per side (port / starboard)** — with
+  **passive radiators**. No forced zoning today.
+- **Heat (planned, sequenced):** the hydronic system is **rebuilt and re-spec'd
+  first** — this is the prerequisite. Augmentation adds an **electric heater**
+  (supplements the LP boilers) and **electric zone valves** to engage **radiant
+  floor zones selectively**. Only after that does the **raised radiant floor**
+  (hydronic loops under an **engineered-vinyl** surface, on a slightly raised
+  `slab`) become viable. The raised floor is a **want-to-have**, gated on the
+  hydronic rebuild — so it is NOT baked into the base envelope template; it is a
+  remodel-phase overlay.
+- **Domestic hot water:** separate Aqua-Hot electric water heater — failing,
+  slated for replacement.
+- **Water:** fresh / grey / black = **100 gal each**. **Propane:** **30 gal**.
+- **A/C (as-is):** 3× rooftop Dometic 24k BTU (2 → cabin, 1 → bath with marginal
+  bedroom reach; bedroom starved by poor ducting). **A/C remodel plan: ductless
+  mini-splits** — condenser + per-zone head + refrigerant `lineset` + condensate
+  + AC feed — replaces the roof units and structurally fixes the bedroom.
+- **Electrical:** house bank upgraded to **LiFePO4**; added solar charge
+  controller + **400 W** panels; original dual 160 A alternators. Inverter and
+  shore-service still to confirm.
+
+## Design Principle — Full Maintenance Access (no-demo)
+
+Motivated by past mouse intrusion and burst water lines, a core owner
+requirement: **every exterior wall must be serviceable without demolition.**
+All wall panels are **removable** and all cabinets **detachable**. Modeling
+implications:
+
+- Exterior walls decompose into **discrete removable panel sections**, and
+  cabinets are **detachable component** nodes — not baked-in geometry.
+- Each panel/cabinet is **associated with the systems routed behind or through
+  it**, so the model answers "what's behind this panel before I pull it." This
+  is the through-line that gives the systems-documentation layer its purpose,
+  and it governs how the remodel phase (Phase 5) decomposes walls and cabinetry.
+
 ## Open Questions
 
-- Exact coach interior dimensions and bay positions (owner to supply as
-  measurements during Phase 1).
+- Per-bay lengths and tag-axle position still to be measured (interior width,
+  ceiling height, wall thickness, and cabin length are now known — see As-Built
+  Profile).
+- Mini-split condenser mounting location (roof / rear cap / basement bay) —
+  drives lineset routing; decide during the climate phase.
 - Whether `data-cable` subtypes warrant separate types later (deferred; one type
   with a subtype attr for now).
 - Whether specialized hub semantics (e.g. `ac-panel` owning a first-class circuit
