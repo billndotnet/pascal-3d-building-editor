@@ -17,6 +17,7 @@ import { FenceNode } from './nodes/fence'
 import { GuideNode } from './nodes/guide'
 import { GutterNode } from './nodes/gutter'
 import { HvacEquipmentNode } from './nodes/hvac-equipment'
+import { HydronicComponentNode } from './nodes/hydronic-component'
 import { HydronicLineNode } from './nodes/hydronic-line'
 import { ItemNode } from './nodes/item'
 import { LevelNode } from './nodes/level'
@@ -80,6 +81,7 @@ export const AnyNode = z.discriminatedUnion('type', [
   DuctTerminalNode,
   HvacEquipmentNode,
   LinesetNode,
+  HydronicComponentNode,
   HydronicLineNode,
   LiquidLineNode,
   PipeSegmentNode,

@@ -20,6 +20,7 @@ import type {
   GuideNode,
   GutterNode,
   HvacEquipmentNode,
+  HydronicComponentNode,
   HydronicLineNode,
   ItemNode,
   LevelNode,
@@ -125,6 +126,7 @@ export type PipeSegmentEvent = NodeEvent<PipeSegmentNode>
 export type PipeFittingEvent = NodeEvent<PipeFittingNode>
 export type PipeTrapEvent = NodeEvent<PipeTrapNode>
 export type LinesetEvent = NodeEvent<LinesetNode>
+export type HydronicComponentEvent = NodeEvent<HydronicComponentNode>
 export type HydronicLineEvent = NodeEvent<HydronicLineNode>
 export type LiquidLineEvent = NodeEvent<LiquidLineNode>
 
@@ -289,6 +291,7 @@ type EditorEvents = GridEvents &
   NodeEvents<'pipe-fitting', PipeFittingEvent> &
   NodeEvents<'pipe-trap', PipeTrapEvent> &
   NodeEvents<'lineset', LinesetEvent> &
+  NodeEvents<'hydronic-component', HydronicComponentEvent> &
   NodeEvents<'hydronic-line', HydronicLineEvent> &
   NodeEvents<'liquid-line', LiquidLineEvent> &
   CameraControlEvents &
