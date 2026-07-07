@@ -5,6 +5,7 @@ import {
   type AnyNodeId,
   analyzePortConnectivity,
   type Cursor,
+  type HydronicLineNode,
   type LinesetNode,
   type LiquidLineNode,
   type PortConnectivity,
@@ -23,8 +24,8 @@ import { type Group, type Object3D, Plane, Raycaster, Vector2, Vector3 } from 't
 import { collectScenePorts, findNearestPortXZ, REFRIGERANT_PORT_SYSTEMS } from './ports'
 import { HandleCube, MoveChevron } from './selection-handles'
 
-type RefrigerantLineKind = 'lineset' | 'liquid-line'
-type RefrigerantLineNode = LinesetNode | LiquidLineNode
+type RefrigerantLineKind = 'lineset' | 'liquid-line' | 'hydronic-line'
+type RefrigerantLineNode = LinesetNode | LiquidLineNode | HydronicLineNode
 type Point = [number, number, number]
 type DragKind =
   | { axis: 'y'; along?: boolean }
@@ -65,10 +66,14 @@ function selectedLineOfKind(
   const node = useScene.getState().nodes[id]
   if (kind === 'lineset' && node?.type === 'lineset') return node as LinesetNode
   if (kind === 'liquid-line' && node?.type === 'liquid-line') return node as LiquidLineNode
+  if (kind === 'hydronic-line' && node?.type === 'hydronic-line') return node as HydronicLineNode
   return null
 }
 
-export function createRefrigerantLineSelectionAffordance(kind: RefrigerantLineKind) {
+export function createRefrigerantLineSelectionAffordance(
+  kind: RefrigerantLineKind,
+  portSystems: readonly string[] = REFRIGERANT_PORT_SYSTEMS,
+) {
   const RefrigerantLineSelectionAffordance = () => {
     const selectedIds = useViewer((s) => s.selection.selectedIds)
     const selectedId = selectedIds.length === 1 ? (selectedIds[0] as AnyNodeId) : undefined
@@ -94,7 +99,7 @@ export function createRefrigerantLineSelectionAffordance(kind: RefrigerantLineKi
     if (!line || !target) return null
     const mount = target.parent ?? target
     return createPortal(
-      <RefrigerantLineEndpointHandles line={line} target={target} />,
+      <RefrigerantLineEndpointHandles line={line} portSystems={portSystems} target={target} />,
       mount,
       undefined,
     )
@@ -105,9 +110,11 @@ export function createRefrigerantLineSelectionAffordance(kind: RefrigerantLineKi
 
 function RefrigerantLineEndpointHandles({
   line,
+  portSystems,
   target,
 }: {
   line: RefrigerantLineNode
+  portSystems: readonly string[]
   target: Object3D
 }) {
   const { camera, gl } = useThree()
@@ -283,7 +290,7 @@ function RefrigerantLineEndpointHandles({
       if (isEndpoint) {
         const port = findNearestPortXZ(
           [next[0], next[1], next[2]],
-          collectScenePorts({ excludeNodeId: line.id, systems: REFRIGERANT_PORT_SYSTEMS }),
+          collectScenePorts({ excludeNodeId: line.id, systems: portSystems }),
           PORT_SNAP_RADIUS_M,
         )
         if (port) next = [port.position[0], port.position[1], port.position[2]]
