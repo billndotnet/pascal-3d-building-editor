@@ -79,6 +79,7 @@ describe('canDirectMoveNode', () => {
       'pipe-fitting',
       'lineset',
       'liquid-line',
+      'hydronic-line',
     ]) {
       expect(canDirectMoveNode({ id: 'node_1', type: kind } as unknown as AnyNode)).toBe(false)
     }

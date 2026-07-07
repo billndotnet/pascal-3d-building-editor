@@ -1,11 +1,14 @@
 import type { NodeDefinition } from '@pascal-app/core'
+import { createPathPointMoveAffordance } from '../shared/path-point-affordance'
+import { buildHydronicLineFloorplan } from './floorplan'
 import { buildHydronicLineGeometry } from './geometry'
+import { hydronicLineParametrics } from './parametrics'
 import { HydronicLineNode } from './schema'
 
 /**
  * Hydronic line — an insulated coolant tube run (fluid-side sibling of the
- * refrigerant lineset). Geometry-only for now: the interactive draw tool and
- * 2D floorplan land together in a later slice (2D↔3D parity).
+ * refrigerant lineset). Same polyline model and draw tool as `lineset`, but
+ * it snaps onto hydronic ports instead of refrigerant service ports.
  */
 export const hydronicLineDefinition: NodeDefinition<typeof HydronicLineNode> = {
   kind: 'hydronic-line',
@@ -35,6 +38,8 @@ export const hydronicLineDefinition: NodeDefinition<typeof HydronicLineNode> = {
     deletable: true,
   },
 
+  parametrics: hydronicLineParametrics,
+
   geometry: buildHydronicLineGeometry,
   geometryKey: (n) => JSON.stringify([n.path, n.diameter, n.insulated, n.role]),
 
@@ -57,6 +62,37 @@ export const hydronicLineDefinition: NodeDefinition<typeof HydronicLineNode> = {
       { id: 'end', position: last, direction: unit(last, prev), diameter: n.diameter, system: 'hydronic' },
     ]
   },
+
+  floorplan: buildHydronicLineFloorplan,
+
+  // 2D selection-time path-point handles — the floor-plan twin of the 3D
+  // `affordanceTools.selection` handles. The builder emits an
+  // `endpoint-handle` per path vertex; this drags the matching point.
+  floorplanAffordances: {
+    'move-path-point': createPathPointMoveAffordance('hydronic-line'),
+  },
+
+  // Selection-time path-point handles (drag to edit a committed run).
+  // Editor-only UI, so it mounts via the editor's SelectionAffordanceManager
+  // — not `def.system`, which the viewer package mounts for the read-only
+  // route.
+  affordanceTools: {
+    selection: () => import('./selection'),
+    // Ghost-preview duplicate / move (the hydronic sibling of lineset's
+    // mover). Duplicate is pure drag-to-place: a translucent copy of the
+    // run, wrapped in a footprint bounding box, follows the cursor and only
+    // lands on the commit click — nothing is inserted into the scene before
+    // that.
+    move: () => import('./move-tool'),
+  },
+
+  tool: () => import('./tool'),
+  toolHints: [
+    { key: 'Click', label: 'Start hydronic line' },
+    { key: 'Click again', label: 'Place it (locked to 45°)' },
+    { key: 'Alt + drag', label: 'Go vertical ↕, click to place' },
+    { key: 'Esc', label: 'Cancel start point' },
+  ],
 
   presentation: {
     label: 'Hydronic line',

@@ -34,4 +34,5 @@ export const tools: ToolConfig[] = [
   { id: 'pipe-fitting', iconSrc: '/icons/duct-fitting.webp', label: 'Pipe Fitting' },
   { id: 'lineset', iconSrc: '/icons/lineset.webp', label: 'Lineset' },
   { id: 'liquid-line', iconSrc: '/icons/lineset.webp', label: 'Liquid Line' },
+  { id: 'hydronic-line', iconSrc: '/icons/lineset.webp', label: 'Hydronic Line' },
 ]

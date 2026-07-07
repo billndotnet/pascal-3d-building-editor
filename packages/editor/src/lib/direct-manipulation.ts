@@ -41,6 +41,7 @@ const BESPOKE_SELECTION_MOVE_KINDS = new Set([
   'pipe-fitting',
   'lineset',
   'liquid-line',
+  'hydronic-line',
 ])
 
 export function canDirectMoveNode(node: AnyNode): boolean {

@@ -20,3 +20,20 @@ describe('hydronicLineDefinition', () => {
     expect(ports.every((p) => p.system === 'hydronic')).toBe(true)
   })
 })
+
+describe('hydronicLineDefinition interactive wiring', () => {
+  test('exposes a 2D floorplan builder', () => {
+    expect(typeof hydronicLineDefinition.floorplan).toBe('function')
+  })
+  test('exposes parametrics', () => {
+    expect(hydronicLineDefinition.parametrics).toBeDefined()
+  })
+  test('registers the move-path-point floorplan affordance', () => {
+    expect(hydronicLineDefinition.floorplanAffordances?.['move-path-point']).toBeDefined()
+  })
+  test('provides a draw tool and selection/move affordance tools', () => {
+    expect(hydronicLineDefinition.tool).toBeDefined()
+    expect(hydronicLineDefinition.affordanceTools?.selection).toBeDefined()
+    expect(hydronicLineDefinition.affordanceTools?.move).toBeDefined()
+  })
+})

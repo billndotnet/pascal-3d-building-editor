@@ -550,13 +550,15 @@ export function FloatingActionMenu() {
           duplicate.type === 'duct-fitting' ||
           duplicate.type === 'pipe-segment' ||
           duplicate.type === 'lineset' ||
-          duplicate.type === 'liquid-line'
+          duplicate.type === 'liquid-line' ||
+          duplicate.type === 'hydronic-line'
         ) {
-          // Duct runs & fittings, DWV pipe runs, and refrigerant linesets use
-          // pure drag-to-place: NO node is inserted into the scene until the
-          // commit click. `setMovingNode` below hands the clone (with
-          // `metadata.isNew`) to its ghost tool (`MoveDuctSegmentTool` /
-          // `MoveDuctFittingTool` / `MovePipeSegmentTool` / `MoveLinesetTool`),
+          // Duct runs & fittings, DWV pipe runs, and refrigerant/hydronic
+          // linesets use pure drag-to-place: NO node is inserted into the
+          // scene until the commit click. `setMovingNode` below hands the
+          // clone (with `metadata.isNew`) to its ghost tool
+          // (`MoveDuctSegmentTool` / `MoveDuctFittingTool` /
+          // `MovePipeSegmentTool` / `MoveLinesetTool` / `MoveHydronicLineTool`),
           // which previews a translucent copy inside a footprint bounding box
           // on the cursor and calls `createNode` on the drop click.
           // Pre-creating here would drop a copy before any click — the

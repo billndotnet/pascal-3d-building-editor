@@ -135,6 +135,7 @@ export type StructureTool =
   | 'hvac-equipment'
   | 'lineset'
   | 'liquid-line'
+  | 'hydronic-line'
   | 'pipe-segment'
   | 'pipe-fitting'
   | 'pipe-trap'
