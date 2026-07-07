@@ -625,13 +625,103 @@ export const FloorplanRegistryLayer = memo(function FloorplanRegistryLayer() {
     [],
   )
 
+  // Plain left-drag on an already-selected, movable entry body → move it.
+  // Sibling of `startDirectMoveDrag` (the Cmd/Ctrl variant); the only
+  // differences are the no-modifier gate and a plain-select (not toggle) on a
+  // quiet release. Everything else — the 4px threshold, engage, and the rAF
+  // synthetic-pointermove that primes the move overlay — is identical and load
+  // bearing.
+  const startPlainMoveDrag = useCallback(
+    (id: AnyNodeId, event: ReactPointerEvent<SVGGElement>): boolean => {
+      // DELTA 1: plain left button only — no modifier keys (those belong to the
+      // Cmd/Ctrl move/rotate and multi-select paths).
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return false
+      }
+
+      const node = useScene.getState().nodes[id]
+      if (!node || !isRegistryMovable(node.type)) return false
+      if (!useViewer.getState().selection.selectedIds.includes(id)) return false
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      const startX = event.clientX
+      const startY = event.clientY
+      const pointerId = event.pointerId
+      let engaged = false
+
+      const cleanup = () => {
+        window.removeEventListener('pointermove', onMove)
+        window.removeEventListener('pointerup', onEnd)
+        window.removeEventListener('pointercancel', onEnd)
+        if (engaged) {
+          useViewer.getState().setInputDragging(false)
+        }
+      }
+
+      const onMove = (moveEvent: PointerEvent) => {
+        if (moveEvent.pointerId !== pointerId) return
+        if (engaged) return
+        const distance = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY)
+        if (distance < DIRECT_DRAG_THRESHOLD_PX) return
+
+        engaged = true
+        useViewer.getState().setInputDragging(true)
+        swallowNextClick(300)
+        createEditorApi().engageMoveDrag(node)
+
+        requestAnimationFrame(() => {
+          window.dispatchEvent(
+            new PointerEvent('pointermove', {
+              altKey: moveEvent.altKey,
+              bubbles: true,
+              buttons: moveEvent.buttons,
+              clientX: moveEvent.clientX,
+              clientY: moveEvent.clientY,
+              ctrlKey: moveEvent.ctrlKey,
+              metaKey: moveEvent.metaKey,
+              pointerId,
+              pointerType: moveEvent.pointerType,
+              shiftKey: moveEvent.shiftKey,
+            }),
+          )
+        })
+      }
+
+      const onEnd = (endEvent: PointerEvent) => {
+        if (endEvent.pointerId !== pointerId) return
+        cleanup()
+        if (!engaged) {
+          // DELTA 2: a quiet (non-drag) release is a plain click on an
+          // already-selected node — keep it as a plain select, not the toggle
+          // the Cmd/Ctrl path uses.
+          applyEntrySelection(id, false)
+        }
+      }
+
+      window.addEventListener('pointermove', onMove)
+      window.addEventListener('pointerup', onEnd)
+      window.addEventListener('pointercancel', onEnd)
+      return true
+    },
+    [applyEntrySelection],
+  )
+
   const handleEntryPointerDown = useCallback(
     (id: AnyNodeId, event: ReactPointerEvent<SVGGElement>) => {
       if (startDirectMoveDrag(id, event)) return
       if (startDirectRotateDrag(id, event)) return
+      if (startPlainMoveDrag(id, event)) return
       handleSelect(id, event)
     },
-    [handleSelect, startDirectMoveDrag, startDirectRotateDrag],
+    [handleSelect, startDirectMoveDrag, startDirectRotateDrag, startPlainMoveDrag],
   )
 
   const floorplanData = useMemo(() => {
