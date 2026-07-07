@@ -56,10 +56,32 @@ const createFloorMaterial = (zoneColor: string) => {
 }
 
 /**
+ * Solid (non-fading) translucent wall material for the 'prism' volume style —
+ * a defined box rather than the upward-fading 'walls' look.
+ */
+const createSolidWallMaterial = (zoneColor: string) => {
+  const baseColor = color(new Color(zoneColor))
+  const opacity = uniform(0)
+  return new MeshBasicNodeMaterial({
+    transparent: true,
+    colorNode: baseColor,
+    opacityNode: float(0.22).mul(opacity),
+    side: DoubleSide,
+    depthWrite: false,
+    depthTest: false,
+    userData: { uOpacity: opacity },
+  })
+}
+
+/**
  * Creates wall geometry for zone borders
  * Each wall segment is a vertical quad from one polygon point to the next
  */
-const createWallGeometry = (polygon: Array<[number, number]>): BufferGeometry => {
+const createWallGeometry = (
+  polygon: Array<[number, number]>,
+  height: number,
+  baseY: number,
+): BufferGeometry => {
   const geometry = new BufferGeometry()
 
   if (polygon.length < 2) return geometry
@@ -77,19 +99,19 @@ const createWallGeometry = (polygon: Array<[number, number]>): BufferGeometry =>
 
     // Four vertices per wall segment (two triangles forming a quad)
     // Bottom-left
-    positions.push(current[0]!, Y_OFFSET, current[1]!)
+    positions.push(current[0]!, baseY, current[1]!)
     uvs.push(0, 0)
 
     // Bottom-right
-    positions.push(next[0]!, Y_OFFSET, next[1]!)
+    positions.push(next[0]!, baseY, next[1]!)
     uvs.push(1, 0)
 
     // Top-right
-    positions.push(next[0]!, Y_OFFSET + WALL_HEIGHT, next[1]!)
+    positions.push(next[0]!, baseY + height, next[1]!)
     uvs.push(1, 1)
 
     // Top-left
-    positions.push(current[0]!, Y_OFFSET + WALL_HEIGHT, current[1]!)
+    positions.push(current[0]!, baseY + height, current[1]!)
     uvs.push(0, 1)
 
     // Two triangles for the quad
@@ -128,11 +150,20 @@ export const ZoneRenderer = ({ node }: { node: ZoneNode }) => {
     return shape
   }, [node?.polygon])
 
+  // Volume: per-zone extrusion height (default wall height when unset), base
+  // elevation offset, and the solid-prism-vs-fading-walls style toggle.
+  const wallHeight = node?.height ?? WALL_HEIGHT
+  const baseY = Y_OFFSET + (node?.elevation ?? 0)
+  const isPrism = node?.volumeStyle === 'prism'
+  // Label near the top of the volume (unchanged for the tall default; sits atop
+  // short volumes like RV bays).
+  const labelY = baseY + Math.min(1, wallHeight)
+
   // Create wall geometry from polygon
   const wallGeometry = useMemo(() => {
     if (!node?.polygon || node.polygon.length < 2) return null
-    return createWallGeometry(node.polygon)
-  }, [node?.polygon])
+    return createWallGeometry(node.polygon, wallHeight, baseY)
+  }, [node?.polygon, wallHeight, baseY])
 
   // Calculate polygon centroid for label positioning using the geometric centroid formula
   // This correctly handles polygons regardless of vertex distribution along edges
@@ -169,8 +200,8 @@ export const ZoneRenderer = ({ node }: { node: ZoneNode }) => {
 
   const wallMaterial = useMemo(() => {
     if (!node?.color) return null
-    return createWallGradientMaterial(node.color)
-  }, [node?.color])
+    return isPrism ? createSolidWallMaterial(node.color) : createWallGradientMaterial(node.color)
+  }, [node?.color, isPrism])
 
   const handlers = useNodeEvents(node, 'zone')
 
@@ -179,10 +210,10 @@ export const ZoneRenderer = ({ node }: { node: ZoneNode }) => {
   }
 
   return (
-    <group ref={ref} {...handlers} userData={{ labelPosition: [centroid[0], 1, centroid[1]] }}>
+    <group ref={ref} {...handlers} userData={{ labelPosition: [centroid[0], labelY, centroid[1]] }}>
       <Html
         name="label"
-        position={[centroid[0], 1, centroid[1]]}
+        position={[centroid[0], labelY, centroid[1]]}
         style={{ pointerEvents: 'none' }}
         zIndexRange={[10, 0]}
       >
@@ -243,14 +274,27 @@ export const ZoneRenderer = ({ node }: { node: ZoneNode }) => {
         layers={ZONE_LAYER}
         material={floorMaterial}
         name="floor"
-        position={[0, Y_OFFSET, 0]}
+        position={[0, baseY, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
         <shapeGeometry args={[floorShape]} />
       </mesh>
 
-      {/* Wall borders with gradient */}
+      {/* Wall borders (fading 'walls' or solid 'prism' per volumeStyle) */}
       <mesh geometry={wallGeometry} layers={ZONE_LAYER} material={wallMaterial} name="walls" />
+
+      {/* Top cap — closes the box for the solid 'prism' style */}
+      {isPrism && (
+        <mesh
+          layers={ZONE_LAYER}
+          material={floorMaterial}
+          name="top-cap"
+          position={[0, baseY + wallHeight, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <shapeGeometry args={[floorShape]} />
+        </mesh>
+      )}
     </group>
   )
 }
