@@ -18,6 +18,7 @@ export function buildZoneFloorplan(node: ZoneNode, ctx: GeometryContext): Floorp
   const palette = view?.palette
   const isSelected = view?.selected ?? false
   const isHighlighted = view?.highlighted ?? false
+  const isMoving = view?.moving ?? false
   const showSelectedChrome = isSelected || isHighlighted
 
   const points: FloorplanPoint[] = ring.map(([x, z]) => [x, z] as FloorplanPoint)
@@ -81,6 +82,14 @@ export function buildZoneFloorplan(node: ZoneNode, ctx: GeometryContext): Floorp
         affordance: 'move-vertex',
         payload: { vertexIndex: i },
       })
+    }
+
+    // Visible move grip at the centroid — drag it to reposition the whole
+    // zone (the same handle six other kinds use). Hidden while moving so the
+    // dot doesn't sit under the cursor and re-arm on release.
+    if (!isMoving) {
+      const [mcx, mcy] = polygonCentroid(ring)
+      children.push({ kind: 'move-handle', point: [mcx, mcy] })
     }
   }
 
