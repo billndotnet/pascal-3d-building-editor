@@ -159,7 +159,9 @@ export type CatalogCategory =
 export type StructureLayer = 'zones' | 'elements'
 
 export type FloorplanSelectionTool = 'click' | 'marquee'
-export type GridSnapStep = 0.5 | 0.25 | 0.1 | 0.05
+/** Grid snap step in metres. Any positive value (clamped to a sane range); the
+ *  toolbar lets the user type an exact fineness. */
+export type GridSnapStep = number
 
 export type NavigationSyncSource = '2d' | '3d'
 
@@ -487,7 +489,16 @@ export const DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE: PersistedEditorLayoutState =
   referenceFloorOpacity: 0.35,
 }
 
-const GRID_SNAP_STEPS: GridSnapStep[] = [0.5, 0.25, 0.1, 0.05]
+/** Ctrl-cycle presets, in metres — an imperial ladder (12″, 6″, 1″, ½″, ¼″, ⅛″). */
+const GRID_SNAP_STEPS: GridSnapStep[] = [0.3048, 0.1524, 0.0254, 0.0127, 0.00635, 0.003175]
+/** Clamp bounds for a custom grid step, in metres (~1/64″ to 1 m). */
+const MIN_GRID_SNAP_M = 0.0004
+const MAX_GRID_SNAP_M = 1
+
+export function clampGridSnapStep(step: number): GridSnapStep {
+  if (!Number.isFinite(step) || step <= 0) return DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE.gridSnapStep
+  return Math.min(MAX_GRID_SNAP_M, Math.max(MIN_GRID_SNAP_M, step))
+}
 
 type SelectDefaultBuildingAndLevelOptions = {
   forceGroundLevel?: boolean
@@ -635,9 +646,10 @@ function normalizePersistedEditorLayoutState(
     floorplanPaneRatio: normalizeFloorplanPaneRatio(state?.floorplanPaneRatio),
     splitOrientation: state?.splitOrientation === 'vertical' ? 'vertical' : 'horizontal',
     floorplanSelectionTool: state?.floorplanSelectionTool === 'marquee' ? 'marquee' : 'click',
-    gridSnapStep: GRID_SNAP_STEPS.includes(state?.gridSnapStep as GridSnapStep)
-      ? (state?.gridSnapStep as GridSnapStep)
-      : DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE.gridSnapStep,
+    gridSnapStep:
+      typeof state?.gridSnapStep === 'number'
+        ? clampGridSnapStep(state.gridSnapStep)
+        : DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE.gridSnapStep,
     // Default on: only an explicit persisted `false` disables it.
     magneticSnap: state?.magneticSnap !== false,
     snappingModeByContext: {
@@ -1093,7 +1105,7 @@ const useEditor = create<EditorState>()(
       floorplanSelectionTool: 'click' as FloorplanSelectionTool,
       setFloorplanSelectionTool: (tool) => set({ floorplanSelectionTool: tool }),
       gridSnapStep: DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE.gridSnapStep,
-      setGridSnapStep: (step) => set({ gridSnapStep: step }),
+      setGridSnapStep: (step) => set({ gridSnapStep: clampGridSnapStep(step) }),
       cycleGridSnapStep: () => {
         const current = get().gridSnapStep
         const index = GRID_SNAP_STEPS.indexOf(current)

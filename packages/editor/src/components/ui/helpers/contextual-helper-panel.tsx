@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/react'
-import { Fragment } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import {
   CONTINUATION_PROFILES,
   type ContinuationContext,
@@ -14,7 +14,7 @@ import {
   type SnapContext,
 } from '../../../lib/snapping-mode'
 import { cn } from '../../../lib/utils'
-import useEditor, { type GridSnapStep } from '../../../store/use-editor'
+import useEditor from '../../../store/use-editor'
 import useFenceCurveDraft from '../../../store/use-fence-curve-draft'
 import { ShortcutToken } from '../primitives/shortcut-token'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../primitives/tooltip'
@@ -147,11 +147,82 @@ const SNAPPING_MODE_LABELS = {
   off: 'Off',
 } as const
 
-const GRID_SNAP_STEPS: GridSnapStep[] = [0.5, 0.25, 0.1, 0.05]
+const M_PER_IN = 0.0254
 
-function nextGridSnapStep(step: GridSnapStep): GridSnapStep {
-  const index = GRID_SNAP_STEPS.indexOf(step)
-  return GRID_SNAP_STEPS[(index + 1) % GRID_SNAP_STEPS.length] ?? GRID_SNAP_STEPS[0]!
+/** Metre grid step → trimmed inch label, e.g. 0.00635 m → `0.25″`. */
+function formatInchesLabel(meters: number): string {
+  return `${Number.parseFloat((meters / M_PER_IN).toFixed(3))}″`
+}
+
+/** Parse an inches string into metres. Accepts decimal ("0.25", "2"),
+ *  fraction ("1/4"), or mixed ("1 1/2"). Returns null if unparseable. */
+function parseInchesToMeters(raw: string): number | null {
+  const s = raw.trim().replace(/["″]|in\b/gi, '').trim()
+  if (!s) return null
+  let inches: number | null = null
+  const mixed = s.match(/^(\d+)\s+(\d+)\/(\d+)$/)
+  const frac = s.match(/^(\d+)\/(\d+)$/)
+  if (mixed) inches = Number(mixed[1]) + Number(mixed[2]) / Number(mixed[3])
+  else if (frac) inches = Number(frac[1]) / Number(frac[2])
+  else if (Number.isFinite(Number(s))) inches = Number(s)
+  if (inches === null || !Number.isFinite(inches) || inches <= 0) return null
+  return inches * M_PER_IN
+}
+
+/** Editable grid-step field — type an exact snap fineness in inches. Ctrl still
+ *  cycles the imperial presets via the keyboard shortcut. */
+function GridStepField() {
+  const gridSnapStep = useEditor((s) => s.gridSnapStep)
+  const setGridSnapStep = useEditor((s) => s.setGridSnapStep)
+  const [draft, setDraft] = useState<string | null>(null)
+  const cancelRef = useRef(false)
+
+  const finish = (raw: string) => {
+    if (!cancelRef.current) {
+      const meters = parseInchesToMeters(raw)
+      if (meters !== null) {
+        setGridSnapStep(meters)
+        sfxEmitter.emit('sfx:grid-snap')
+      }
+    }
+    cancelRef.current = false
+    setDraft(null)
+  }
+
+  return (
+    <div className={cn(ROW_CLASS, 'items-center')}>
+      <span className={KEY_CELL_CLASS}>
+        <ShortcutToken className={TOKEN_CLASS} value="Ctrl" />
+      </span>
+      <label className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
+        <span className="shrink-0">Grid:</span>
+        <input
+          aria-label="Grid snap step in inches"
+          className="w-16 rounded bg-muted/60 px-1.5 py-0.5 text-right text-xs tabular-nums outline-none focus:ring-1 focus:ring-ring"
+          inputMode="decimal"
+          onBlur={(e) => finish(e.target.value)}
+          onChange={(e) => setDraft(e.target.value)}
+          onFocus={() => {
+            cancelRef.current = false
+            // Clear on first focus so the user types a fresh value; the current
+            // step shows as the placeholder. The guard keeps a re-focus (e.g.
+            // browser autofill) from wiping an in-progress edit.
+            if (draft === null) setDraft('')
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+            else if (e.key === 'Escape') {
+              cancelRef.current = true
+              e.currentTarget.blur()
+            }
+          }}
+          placeholder={formatInchesLabel(gridSnapStep)}
+          value={draft ?? formatInchesLabel(gridSnapStep)}
+        />
+        <span className="shrink-0 text-muted-foreground/70">in</span>
+      </label>
+    </div>
+  )
 }
 
 // The active interaction's snapping controls, scoped to its context (wall / item
@@ -159,8 +230,6 @@ function nextGridSnapStep(step: GridSnapStep): GridSnapStep {
 function SnappingChips({ context }: { context: SnapContext }) {
   const snappingMode = useEditor((s) => s.snappingModeByContext[context])
   const setSnappingMode = useEditor((s) => s.setSnappingMode)
-  const gridSnapStep = useEditor((s) => s.gridSnapStep)
-  const setGridSnapStep = useEditor((s) => s.setGridSnapStep)
 
   const gridActive = resolveSnapFlags(snappingMode).grid
 
@@ -177,18 +246,7 @@ function SnappingChips({ context }: { context: SnapContext }) {
         shortcut="Shift"
         tooltip="Snapping mode — click or press Shift to cycle"
       />
-      {gridActive ? (
-        <ChipRow
-          ariaLabel={`Grid step: ${gridSnapStep.toFixed(2)} m`}
-          label={`Grid: ${gridSnapStep.toFixed(2)} m`}
-          onClick={() => {
-            setGridSnapStep(nextGridSnapStep(gridSnapStep))
-            sfxEmitter.emit('sfx:grid-snap')
-          }}
-          shortcut="Ctrl"
-          tooltip="Grid step — click or tap Ctrl to cycle"
-        />
-      ) : null}
+      {gridActive ? <GridStepField /> : null}
     </>
   )
 }
