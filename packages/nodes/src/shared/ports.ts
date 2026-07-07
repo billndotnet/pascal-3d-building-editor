@@ -9,6 +9,8 @@ export const DUCT_PORT_SYSTEMS = ['supply', 'return'] as const
 export const DWV_PORT_SYSTEMS = ['waste', 'vent'] as const
 /** Refrigerant-loop port system — what linesets snap to. */
 export const REFRIGERANT_PORT_SYSTEMS = ['refrigerant'] as const
+/** Hydronic-loop port system — what hydronic lines snap to. */
+export const HYDRONIC_PORT_SYSTEMS = ['hydronic'] as const
 
 /**
  * Filter narrowing which ports a tool will snap to.
