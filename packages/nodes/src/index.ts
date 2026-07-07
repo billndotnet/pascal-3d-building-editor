@@ -17,6 +17,7 @@ import { fenceDefinition } from './fence'
 import { guideDefinition } from './guide'
 import { gutterDefinition } from './gutter'
 import { hvacEquipmentDefinition } from './hvac-equipment'
+import { hydronicComponentDefinition } from './hydronic-component'
 import { hydronicLineDefinition } from './hydronic-line'
 import { itemDefinition } from './item'
 import { levelDefinition } from './level'
@@ -106,6 +107,7 @@ export const builtinPlugin: Plugin = {
     linesetDefinition as unknown as AnyNodeDefinition,
     liquidLineDefinition as unknown as AnyNodeDefinition,
     hydronicLineDefinition as unknown as AnyNodeDefinition,
+    hydronicComponentDefinition as unknown as AnyNodeDefinition,
     // DWV plumbing — Phase 2 of the research doc's plan.
     pipeSegmentDefinition as unknown as AnyNodeDefinition,
     pipeFittingDefinition as unknown as AnyNodeDefinition,
@@ -131,6 +133,7 @@ export { fenceDefinition } from './fence'
 export { guideDefinition } from './guide'
 export { gutterDefinition } from './gutter'
 export { hvacEquipmentDefinition } from './hvac-equipment'
+export { hydronicComponentDefinition } from './hydronic-component'
 export { hydronicLineDefinition } from './hydronic-line'
 export { itemDefinition } from './item'
 export { levelDefinition } from './level'

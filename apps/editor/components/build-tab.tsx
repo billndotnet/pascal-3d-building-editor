@@ -43,6 +43,7 @@ type MepToolKind =
   | 'lineset'
   | 'liquid-line'
   | 'hydronic-line'
+  | 'hydronic-component'
   | 'pipe-segment'
   | 'pipe-fitting'
   | 'pipe-trap'
@@ -100,6 +101,12 @@ const MEP_ITEMS: MepItem[] = [
   { id: 'lineset', label: 'Lineset', iconSrc: '/icons/lineset.webp', kind: 'lineset' },
   { id: 'liquid-line', label: 'Liquid Line', iconSrc: '/icons/lineset.webp', kind: 'liquid-line' },
   { id: 'hydronic-line', label: 'Hydronic Line', iconSrc: '/icons/lineset.webp', kind: 'hydronic-line' },
+  {
+    id: 'hydronic-component',
+    label: 'Hydronic Part',
+    iconSrc: '/icons/HVAC.webp',
+    kind: 'hydronic-component',
+  },
   { id: 'pipe-segment', label: 'DWV Pipe', iconSrc: '/icons/dwv-pipes.webp', kind: 'pipe-segment' },
 ]
 

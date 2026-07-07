@@ -136,6 +136,7 @@ export type StructureTool =
   | 'lineset'
   | 'liquid-line'
   | 'hydronic-line'
+  | 'hydronic-component'
   | 'pipe-segment'
   | 'pipe-fitting'
   | 'pipe-trap'

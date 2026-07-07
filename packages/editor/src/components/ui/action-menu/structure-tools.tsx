@@ -29,6 +29,7 @@ export const tools: ToolConfig[] = [
   { id: 'duct-fitting', iconSrc: '/icons/duct-fitting.webp', label: 'Duct Fitting' },
   { id: 'duct-terminal', iconSrc: '/icons/registers.webp', label: 'Register' },
   { id: 'hvac-equipment', iconSrc: '/icons/HVAC.webp', label: 'HVAC Unit' },
+  { id: 'hydronic-component', iconSrc: '/icons/HVAC.webp', label: 'Hydronic Part' },
   { id: 'pipe-segment', iconSrc: '/icons/dwv-pipes.webp', label: 'DWV Pipe' },
   { id: 'pipe-trap', iconSrc: '/icons/dwv-pipes.webp', label: 'Trap' },
   { id: 'pipe-fitting', iconSrc: '/icons/duct-fitting.webp', label: 'Pipe Fitting' },
