@@ -42,6 +42,7 @@ type MepToolKind =
   | 'hvac-equipment'
   | 'lineset'
   | 'liquid-line'
+  | 'hydronic-line'
   | 'pipe-segment'
   | 'pipe-fitting'
   | 'pipe-trap'
@@ -98,6 +99,7 @@ const MEP_ITEMS: MepItem[] = [
   { id: 'hvac-equipment', label: 'HVAC Unit', iconSrc: '/icons/HVAC.webp', kind: 'hvac-equipment' },
   { id: 'lineset', label: 'Lineset', iconSrc: '/icons/lineset.webp', kind: 'lineset' },
   { id: 'liquid-line', label: 'Liquid Line', iconSrc: '/icons/lineset.webp', kind: 'liquid-line' },
+  { id: 'hydronic-line', label: 'Hydronic Line', iconSrc: '/icons/lineset.webp', kind: 'hydronic-line' },
   { id: 'pipe-segment', label: 'DWV Pipe', iconSrc: '/icons/dwv-pipes.webp', kind: 'pipe-segment' },
 ]
 
