@@ -1,25 +1,12 @@
-import { headers } from 'next/headers'
 import Link from 'next/link'
 import { CreateSceneButton } from '@/components/save-button'
 import type { SceneMeta } from '@/components/scene-loader'
+import { internalApiBase } from '@/lib/internal-api'
 
 export const dynamic = 'force-dynamic'
 
-async function resolveBaseUrl(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL
-  }
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host')
-  const proto = h.get('x-forwarded-proto') ?? 'http'
-  if (!host) {
-    return 'http://localhost:3000'
-  }
-  return `${proto}://${host}`
-}
-
 async function fetchScenes(): Promise<SceneMeta[]> {
-  const base = await resolveBaseUrl()
+  const base = internalApiBase()
   const response = await fetch(`${base}/api/scenes?limit=50`, {
     cache: 'no-store',
   })
@@ -58,7 +45,14 @@ export default async function ScenesPage() {
             <span className="text-muted-foreground">/</span>
             <span className="font-medium text-foreground">Scenes</span>
           </nav>
-          <CreateSceneButton />
+          <div className="flex items-center gap-2">
+            <CreateSceneButton
+              label="New 40′ Class A"
+              sceneName="1991 Wanderlodge WB40"
+              templateId="rv-class-a"
+            />
+            <CreateSceneButton />
+          </div>
         </div>
       </header>
 

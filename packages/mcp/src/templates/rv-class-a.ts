@@ -149,7 +149,9 @@ function buildNodes(): AnyNode[] {
         type: 'zone',
         parentId: 'level_chassis' as AnyNodeId,
         visible: true,
-        metadata: { bayRole: b.role, locked: true },
+        // Bays are relocatable/resizable (zone body + vertex/edge affordances)
+        // so the owner can place them accurately for connector termination.
+        metadata: { bayRole: b.role },
         name: b.name,
         color: '#94a3b8',
         polygon: [

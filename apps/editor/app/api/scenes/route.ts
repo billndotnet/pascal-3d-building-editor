@@ -1,3 +1,4 @@
+import { isTemplateId, TEMPLATES } from '@pascal-app/mcp/templates'
 import type { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { apiGraphSchema } from '@/lib/graph-schema'
@@ -6,13 +7,20 @@ import { getSceneOperations } from '@/lib/scene-store-server'
 
 export const dynamic = 'force-dynamic'
 
-const createSceneSchema = z.object({
-  id: z.string().min(1).max(64).optional(),
-  name: z.string().min(1).max(200),
-  projectId: z.string().min(1).max(200).nullable().optional(),
-  graph: apiGraphSchema,
-  thumbnailUrl: z.string().url().nullable().optional(),
-})
+const createSceneSchema = z
+  .object({
+    id: z.string().min(1).max(64).optional(),
+    name: z.string().min(1).max(200),
+    projectId: z.string().min(1).max(200).nullable().optional(),
+    // Either an explicit graph, or a `templateId` the server resolves to a
+    // starter graph (see `list_templates` / packages/mcp templates).
+    graph: apiGraphSchema.optional(),
+    templateId: z.string().min(1).max(64).optional(),
+    thumbnailUrl: z.string().url().nullable().optional(),
+  })
+  .refine((d) => d.graph !== undefined || d.templateId !== undefined, {
+    message: 'either graph or templateId is required',
+  })
 
 const listQuerySchema = z.object({
   projectId: z.string().min(1).max(200).optional(),
@@ -72,13 +80,25 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  let graph = parsed.data.graph
+  if (parsed.data.templateId) {
+    if (!isTemplateId(parsed.data.templateId)) {
+      return sceneApiJson(
+        request,
+        { error: 'invalid_request', details: `unknown templateId: ${parsed.data.templateId}` },
+        { status: 400 },
+      )
+    }
+    graph = TEMPLATES[parsed.data.templateId].template as never
+  }
+
   const operations = await getSceneOperations()
   try {
     const meta = await operations.saveScene({
       id: parsed.data.id,
       name: parsed.data.name,
       projectId: parsed.data.projectId ?? null,
-      graph: parsed.data.graph as never,
+      graph: graph as never,
       thumbnailUrl: parsed.data.thumbnailUrl ?? null,
     })
     return sceneApiJson(request, meta, {

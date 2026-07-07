@@ -17,9 +17,15 @@ interface SaveButtonProps {
 }
 
 /**
- * Creates a new empty scene and navigates the user to it.
+ * Creates a new scene and navigates the user to it. With no `templateId` it
+ * creates an empty scene; with one, the server resolves that template's starter
+ * graph (e.g. `rv-class-a` → the 40′ Class A motorhome envelope).
  */
-export function CreateSceneButton({ label = 'Create new scene' }: { label?: string } = {}) {
+export function CreateSceneButton({
+  label = 'Create new scene',
+  templateId,
+  sceneName,
+}: { label?: string; templateId?: string; sceneName?: string } = {}) {
   const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,10 +34,13 @@ export function CreateSceneButton({ label = 'Create new scene' }: { label?: stri
     setIsCreating(true)
     setError(null)
     try {
+      const body = templateId
+        ? { name: sceneName ?? 'Untitled scene', templateId }
+        : { name: sceneName ?? 'Untitled scene', graph: EMPTY_GRAPH }
       const response = await fetch('/api/scenes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Untitled scene', graph: EMPTY_GRAPH }),
+        body: JSON.stringify(body),
       })
       if (!response.ok) {
         setError(`Failed to create scene (${response.status})`)
@@ -44,7 +53,7 @@ export function CreateSceneButton({ label = 'Create new scene' }: { label?: stri
     } finally {
       setIsCreating(false)
     }
-  }, [router])
+  }, [router, templateId, sceneName])
 
   return (
     <div className="flex items-center gap-3">
