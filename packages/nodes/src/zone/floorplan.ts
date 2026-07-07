@@ -35,6 +35,10 @@ export function buildZoneFloorplan(node: ZoneNode, ctx: GeometryContext): Floorp
       strokeOpacity: showSelectedChrome ? 0.96 : 0.72,
       strokeLinejoin: 'round',
       vectorEffect: 'non-scaling-stroke',
+      // Make the whole body grab the pointer (not just the outline) so a click
+      // selects the zone and a drag on the body moves it. The renderer forces
+      // 'none' in marquee mode, so marquee-over-zone still works.
+      pointerEvents: 'all',
     },
   ]
 
