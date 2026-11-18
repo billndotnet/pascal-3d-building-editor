@@ -65,7 +65,19 @@ function validateOrigin(request: Request): NextResponse | null {
 function validateAuth(request: Request): NextResponse | null {
   const token = process.env.PASCAL_SCENE_API_TOKEN
   if (!token) {
-    if (isLoopbackRequest(request)) return null
+    // Untokened deployments trust loopback, any allowed browser Origin, and
+    // any request whose Host is an explicitly configured origin host. The last
+    // case covers same-origin requests that omit the Origin header (notably
+    // EventSource / SSE) on an exposed single-user instance. This is scoped to
+    // hosts the operator listed in PASCAL_SCENE_API_ORIGINS — set
+    // PASCAL_SCENE_API_TOKEN to require explicit credentials instead.
+    if (
+      isLoopbackRequest(request) ||
+      isTrustedOriginRequest(request) ||
+      isTrustedHostRequest(request)
+    ) {
+      return null
+    }
     return sceneApiJson(request, { error: 'scene_api_token_required' }, { status: 503 })
   }
 
@@ -147,6 +159,23 @@ function isSameOrigin(request: Request, origin: string): boolean {
   if (!parsedOrigin) return false
   const requestUrl = new URL(request.url)
   return normalizeOrigin(parsedOrigin) === normalizeOrigin(requestUrl)
+}
+
+function isTrustedOriginRequest(request: Request): boolean {
+  const origin = request.headers.get('origin')
+  return origin !== null && isOriginAllowed(request, origin)
+}
+
+function isTrustedHostRequest(request: Request): boolean {
+  const host = request.headers.get('host')
+  if (!host) return false
+  const origins = configuredOrigins()
+  if (origins.size === 0) return false
+  for (const proto of ['http', 'https']) {
+    const candidate = parseUrl(`${proto}://${host}`)
+    if (candidate && origins.has(normalizeOrigin(candidate))) return true
+  }
+  return false
 }
 
 function isLoopbackRequest(request: Request): boolean {
